@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PHP Version Scanner — Check Website PHP Version, EOL & Security Status</title>
+<meta name="description" content="Free online PHP version scanner. Check which PHP version a website runs, see if it's end-of-life (EOL), find known vulnerabilities like PHP2Shell (CVE-2026-109618), and get the exact secure PHP version to upgrade to. Scan multiple URLs at once.">
+<meta name="keywords" content="php version checker, check website php version, php end of life, php eol scanner, php security scanner, php vulnerability check, php2shell, php 8.5, php upgrade, detect php version online">
+<meta property="og:title" content="PHP Version Scanner — Check Website PHP Version & Security Status">
+<meta property="og:description" content="Scan any website to detect its PHP version, end-of-life status, and known CVEs including PHP2Shell. Get the exact secure version to upgrade to.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://php-version-scanner.vercel.app/">
+<meta property="og:site_name" content="PHP Version Scanner">
+<meta property="og:image" content="https://php-version-scanner.vercel.app/social-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PHP Version Scanner — Check Website PHP Version & Security Status">
+<meta name="twitter:description" content="Scan any website to detect its PHP version, end-of-life status, and known CVEs including PHP2Shell. Free & open source.">
+<meta name="twitter:image" content="https://php-version-scanner.vercel.app/social-preview.png">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Deepanshu Kapoor">
+<meta name="theme-color" content="#0d0f1e">
+<link rel="canonical" href="https://php-version-scanner.vercel.app/">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐘</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/motion@11.11.17/dist/motion.js" defer></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "PHP Version Scanner",
+  "url": "https://php-version-scanner.vercel.app/",
+  "description": "Free online tool that detects which PHP version a website runs, checks end-of-life status, matches known CVEs including PHP2Shell, and recommends the secure version to upgrade to.",
+  "applicationCategory": "SecurityApplication",
+  "operatingSystem": "Any (web-based)",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "Deepanshu Kapoor", "url": "https://kapoordeepanshu.github.io/" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "How do I check which PHP version a website is running?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Enter the website URL in the PHP Version Scanner. It inspects the server's HTTP response headers (X-Powered-By and Server) to detect the PHP version. If the server exposes its version, the scanner shows it along with its support status and the secure version to upgrade to."}},
+    {"@type": "Question", "name": "What is PHP2Shell (CVE-2026-109618 and CVE-2026-109619)?",
+     "acceptedAnswer": {"@type": "Answer", "text": "PHP2Shell is the name for two critical unauthenticated remote code execution vulnerabilities in PHP core, both rated CVSS 9.2, disclosed in October 2026 and exploited in the wild. They are fixed in PHP 8.5.12, 8.4.27, 8.3.36 and 8.2.35, released October 21, 2026. End-of-life PHP branches will not receive a fix."}},
+    {"@type": "Question", "name": "Which PHP versions are end of life in 2026?",
+     "acceptedAnswer": {"@type": "Answer", "text": "As of late 2026, PHP 8.1 and everything older (8.0, 7.x, 5.x) are end of life and receive no security fixes. PHP 8.2 reaches end of life on December 31, 2026. PHP 8.3 is in security-only support until December 31, 2027. PHP 8.4 and 8.5 are actively supported."}},
+    {"@type": "Question", "name": "Why can't the scanner detect a website's PHP version?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Most commonly because the site sets expose_php=Off (a recommended hardening step), sits behind a CDN or WAF like Cloudflare that strips origin headers, removes the X-Powered-By header in the web server config, or simply doesn't run PHP at all."}},
+    {"@type": "Question", "name": "Which PHP version should I upgrade to in 2026?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Upgrade to PHP 8.4 or PHP 8.5 — both are actively supported. Make sure you are on at least 8.5.12 or 8.4.27, which patch the critical PHP2Shell remote code execution flaws. PHP 8.5 receives security fixes until December 31, 2029."}}
+  ]
+}
+</script>
+<style>
+:root{
+  --bg:#0d0f1e; --bg2:#12142a; --card:#161936; --card2:#1c2043;
+  --line:#2a2e55; --line2:#383d6e;
+  --text:#edeeff; --muted:#9a9ec8; --dim:#6b6f99;
+  --accent:#a5a8ff; --accent-deep:#777bb3;
+  --ok:#3ed598; --ok-bg:rgba(62,213,152,.1);
+  --warn:#ffc24b; --warn-bg:rgba(255,194,75,.1);
+  --bad:#ff7b7b; --bad-bg:rgba(255,123,123,.1);
+  --info:#7db8ff; --info-bg:rgba(125,184,255,.1);
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Space Grotesk',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1020px;margin:0 auto;padding:0 20px}
+a{color:var(--accent)}
+::selection{background:var(--accent-deep);color:#fff}
+
+/* header */
+header{padding:18px 0;border-bottom:1px solid var(--line);background:rgba(13,15,30,.82);backdrop-filter:blur(10px);position:sticky;top:0;z-index:50}
+header .wrap{display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:700;font-size:1.05rem;display:flex;align-items:center;gap:10px;color:var(--text);text-decoration:none;letter-spacing:-.01em}
+.logo .mark{font-family:var(--mono);font-size:.78rem;background:var(--accent-deep);color:#fff;border-radius:7px;padding:4px 8px;font-weight:700}
+nav a{color:var(--muted);text-decoration:none;font-size:.88rem;margin-left:22px;font-weight:500}
+nav a:hover{color:var(--text)}
+
+/* alert ribbon */
+.ribbon{background:linear-gradient(90deg,rgba(255,123,123,.14),rgba(255,123,123,.05));border-bottom:1px solid rgba(255,123,123,.25);padding:9px 0;font-size:.84rem}
+.ribbon .wrap{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.ribbon b{color:var(--bad)}
+.ribbon .mono{font-family:var(--mono);font-size:.78rem}
+
+/* hero */
+.hero{padding:64px 0 30px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(ellipse 60% 45% at 70% -5%,rgba(119,123,179,.22),transparent),
+  radial-gradient(ellipse 40% 35% at 10% 10%,rgba(62,213,152,.05),transparent);pointer-events:none}
+.hero .wrap{position:relative}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;letter-spacing:-.03em;line-height:1.08;max-width:760px}
+.hero h1 .ver-chip{font-family:var(--mono);font-weight:700;font-size:.42em;vertical-align:middle;border:1px solid var(--line2);background:var(--card);border-radius:10px;padding:6px 12px;color:var(--accent);white-space:nowrap}
+.hero p.lede{color:var(--muted);max-width:620px;margin:20px 0 0;font-size:1.06rem}
+
+/* terminal scanner */
+.term{margin-top:38px;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,.5),0 0 0 1px rgba(165,168,255,.04);overflow:hidden;position:relative}
+.term-bar{display:flex;align-items:center;gap:8px;background:var(--bg2);border-bottom:1px solid var(--line);padding:11px 16px;font-family:var(--mono);font-size:.76rem;color:var(--dim)}
+.term-bar i{width:11px;height:11px;border-radius:50%;display:inline-block}
+.term-bar .t{margin-left:10px}
+.scanline{position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;pointer-events:none}
+.term-body{padding:22px}
+.term label{font-family:var(--mono);font-size:.78rem;color:var(--dim);display:block;margin-bottom:10px}
+.term label b{color:var(--ok);font-weight:500}
+.term textarea{width:100%;min-height:104px;background:var(--bg);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:.88rem;padding:14px;resize:vertical;outline:none;line-height:1.7;transition:border-color .2s}
+.term textarea:focus{border-color:var(--accent-deep);box-shadow:0 0 0 3px rgba(119,123,179,.18)}
+.term textarea::placeholder{color:var(--dim)}
+.scan-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:12px;flex-wrap:wrap}
+.hint{color:var(--dim);font-size:.8rem}
+.btn{background:var(--accent-deep);color:#fff;border:0;border-radius:10px;padding:13px 28px;font-weight:600;font-size:.95rem;cursor:pointer;font-family:var(--sans);transition:background .2s,transform .1s;min-height:44px}
+.btn:hover{background:#8a8ed0}
+.btn:active{transform:scale(.98)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--text)}
+.btn.ghost:hover{border-color:var(--accent-deep);background:var(--card2)}
+
+/* results */
+#results{margin-top:24px;display:flex;flex-direction:column;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+.card .top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.card .url{font-family:var(--mono);font-size:.92rem;font-weight:700;word-break:break-all}
+.badge{display:inline-flex;align-items:center;gap:7px;border-radius:8px;padding:5px 13px;font-size:.78rem;font-weight:600;white-space:nowrap;font-family:var(--mono)}
+.b-ok{background:var(--ok-bg);color:var(--ok);border:1px solid rgba(62,213,152,.3)}
+.b-warn{background:var(--warn-bg);color:var(--warn);border:1px solid rgba(255,194,75,.3)}
+.b-bad{background:var(--bad-bg);color:var(--bad);border:1px solid rgba(255,123,123,.3)}
+.b-info{background:var(--info-bg);color:var(--info);border:1px solid rgba(125,184,255,.3)}
+.ver-row{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+.stat{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;min-width:128px;flex:1}
+.stat .k{color:var(--dim);font-size:.74rem;font-weight:500}
+.stat .v{font-family:var(--mono);font-size:1.08rem;font-weight:700;margin-top:3px}
+.stat .v.big{font-size:1.4rem}
+.reco{margin-top:16px;border-radius:10px;padding:14px 16px;font-size:.92rem;border:1px solid;border-left-width:3px}
+.reco.r-bad{background:var(--bad-bg);border-color:rgba(255,123,123,.35)}
+.reco.r-warn{background:var(--warn-bg);border-color:rgba(255,194,75,.35)}
+.reco.r-ok{background:var(--ok-bg);border-color:rgba(62,213,152,.35)}
+.reco.r-info{background:var(--info-bg);border-color:rgba(125,184,255,.35)}
+.cve-list{margin-top:14px}
+.cve-line{display:flex;gap:10px;align-items:baseline;padding:8px 0;border-top:1px dashed var(--line);font-size:.87rem;flex-wrap:wrap}
+.cve-line .id{font-family:var(--mono);font-weight:700;color:var(--bad)}
+.reasons{margin-top:12px;padding-left:20px;color:var(--muted);font-size:.9rem}
+.reasons li{margin:7px 0}
+.reasons b{color:var(--text)}
+.reasons code,.a code,.body code{font-family:var(--mono);font-size:.82em;background:var(--bg2);border:1px solid var(--line);padding:2px 6px;border-radius:5px;color:#c6c9ff}
+
+/* collapsible */
+details.fix{margin-top:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);overflow:hidden}
+details.fix summary{cursor:pointer;padding:13px 16px;font-weight:600;font-size:.9rem;list-style:none;display:flex;align-items:center;gap:10px;user-select:none;min-height:44px}
+details.fix summary::-webkit-details-marker{display:none}
+details.fix summary::after{content:"+";margin-left:auto;font-family:var(--mono);color:var(--accent);font-size:1.05rem;transition:transform .2s}
+details.fix[open] summary::after{content:"–"}
+details.fix summary:hover{background:var(--card2)}
+details.fix summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+details.fix .body{padding:4px 18px 18px;color:var(--muted);font-size:.89rem;border-top:1px solid var(--line)}
+details.fix .body h4{color:var(--text);margin:15px 0 6px;font-size:.88rem}
+details.fix .body ul,details.fix .body ol{padding-left:20px;margin:6px 0}
+details.fix .body li{margin:6px 0}
+details.fix .body pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:8px 0}
+details.fix .body pre code{background:none;border:none;padding:0;font-size:.8rem}
+
+/* sections */
+section{padding:60px 0 6px}
+section h2{font-size:1.7rem;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+section .sub{color:var(--muted);margin-bottom:26px;max-width:660px}
+
+/* timeline */
+.timeline{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;overflow-x:auto}
+.tl-grid{min-width:640px}
+.tl-row{display:grid;grid-template-columns:56px 1fr;gap:14px;align-items:center;margin:13px 0}
+.tl-row .name{font-family:var(--mono);font-weight:700;font-size:.95rem}
+.tl-track{position:relative;height:30px;background:var(--bg2);border-radius:7px}
+.tl-seg{position:absolute;top:0;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.66rem;font-weight:700;color:#0d0f1e;white-space:nowrap;overflow:hidden;transform-origin:left}
+.seg-active{background:var(--ok);border-radius:7px 0 0 7px}
+.seg-sec{background:var(--warn)}
+.seg-eol{background:#3b2340;color:var(--bad);border-radius:0 7px 7px 0}
+.tl-years{display:grid;grid-template-columns:56px 1fr;gap:14px;margin-top:10px}
+.tl-years .scale{display:flex;justify-content:space-between;color:var(--dim);font-size:.72rem;font-family:var(--mono)}
+.tl-now{position:absolute;top:-7px;bottom:-7px;width:2px;background:var(--text);opacity:.9;border-radius:2px}
+.tl-now::after{content:"today";position:absolute;top:-17px;left:-16px;font-size:.62rem;color:var(--text);font-family:var(--mono)}
+.legend{display:flex;gap:18px;margin-top:20px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:7px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* cve cards */
+.cve-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:16px}
+.cve-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column}
+.cve-card.critical{border-color:rgba(255,123,123,.4);background:linear-gradient(180deg,rgba(255,123,123,.06),var(--card) 40%)}
+.cve-card .id{font-family:var(--mono);font-weight:700;color:var(--bad);font-size:.92rem}
+.cve-card h3{font-size:1rem;margin:9px 0 6px;font-weight:600}
+.cve-card p{color:var(--muted);font-size:.86rem;flex:1}
+.cve-card .fixnote{margin-top:12px;font-size:.78rem;color:var(--ok);font-family:var(--mono)}
+
+/* faq */
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;padding:18px 0;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px;min-height:44px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";color:var(--accent);font-family:var(--mono)}
+.faq details[open] summary::after{content:"–"}
+.faq summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.faq .a{color:var(--muted);padding-bottom:18px;font-size:.93rem;max-width:740px}
+
+/* cta + footer */
+.cta{margin:64px 0 0;background:linear-gradient(135deg,rgba(119,123,179,.16),rgba(119,123,179,.05));border:1px solid rgba(165,168,255,.25);border-radius:16px;padding:36px;text-align:center}
+.cta h2{font-size:1.45rem;margin-bottom:10px;letter-spacing:-.01em}
+.cta p{color:var(--muted);max-width:640px;margin:0 auto 22px}
+.cta .btn{text-decoration:none;display:inline-block}
+.cta .links{margin-top:16px;font-size:.86rem}
+.cta .links a{margin:0 8px}
+footer{margin-top:70px;border-top:1px solid var(--line);padding:30px 0 42px;color:var(--dim);font-size:.85rem}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--text)}
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:currentColor;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(max-width:640px){nav{display:none}.hero{padding:44px 0 20px}.term-body{padding:16px}.cta{padding:26px 18px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="logo" href="/"><span class="mark">php -v</span>PHP Version Scanner</a>
+    <nav aria-label="Main">
+      <a href="#scanner">Scanner</a>
+      <a href="#timeline">EOL timeline</a>
+      <a href="#cves">Vulnerabilities</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/kapoordeepanshu/php-version-scanner" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<div class="ribbon" role="alert">
+  <div class="wrap">
+    <b>PHP2Shell is being exploited in the wild.</b>
+    <span>Two critical RCE flaws <span class="mono">(CVE-2026-109618 · CVE-2026-109619, CVSS 9.2)</span> were emergency-patched on Oct 21, 2026. Safe versions: <span class="mono">8.5.12 / 8.4.27 / 8.3.36 / 8.2.35</span>. <a href="#cves">Details</a></span>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="wrap">
+    <h1 data-motion="hero">Outdated PHP is an open door.<br>Find out what your server is telling attackers.</h1>
+    <p class="lede" data-motion="hero">This scanner reads the HTTP headers your website sends with every response, detects the PHP
+       version they reveal, and checks it against end-of-life dates and known vulnerabilities — including the
+       PHP2Shell remote code execution flaws. Paste one URL or ten.</p>
+
+    <div class="term" id="scanner" data-motion="hero">
+      <div class="scanline" id="scanline"></div>
+      <div class="term-bar" aria-hidden="true">
+        <i style="background:#ff7b7b"></i><i style="background:#ffc24b"></i><i style="background:#3ed598"></i>
+        <span class="t">scan — HTTP header inspection</span>
+      </div>
+      <div class="term-body">
+        <label for="urls"><b>$</b> enter website URLs, one per line (up to 10)</label>
+        <textarea id="urls" placeholder="example.com&#10;https://blog.example.org&#10;shop.mysite.com" spellcheck="false" autocomplete="url"></textarea>
+        <div class="scan-row">
+          <span class="hint">One normal GET request per site. Headers only — nothing intrusive.</span>
+          <button class="btn" id="scanBtn" onclick="runScan()">Scan PHP version</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="results" aria-live="polite"></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<section id="timeline">
+  <h2>PHP version support timeline</h2>
+  <p class="sub">Each PHP branch gets two years of active support, then two years of security-only fixes.
+     After end of life a version receives <b>no security patches</b> — every exploit found later stays open forever.</p>
+  <div class="timeline">
+    <div class="tl-grid" id="tlGrid"></div>
+    <div class="tl-years"><div></div><div class="scale" id="tlScale"></div></div>
+    <div class="legend">
+      <span><i style="background:var(--ok)"></i> Active support</span>
+      <span><i style="background:var(--warn)"></i> Security fixes only</span>
+      <span><i style="background:#3b2340"></i> End of life — unprotected</span>
+    </div>
+  </div>
+</section>
+
+<section id="cves">
+  <h2>Recently discovered PHP vulnerabilities</h2>
+  <p class="sub">Security issues patched in 2026 releases. If a site runs an older patch — or an end-of-life branch — it is exposed to these.</p>
+  <div class="cve-grid" id="cveGrid"></div>
+</section>
+
+<section id="faq">
+  <h2>Frequently asked questions</h2>
+  <div class="faq">
+    <details>
+      <summary>How does this scanner detect the PHP version of a website?</summary>
+      <div class="a">It sends a single normal HTTP request to your URL and reads the response headers.
+      PHP commonly announces itself via the <code>X-Powered-By: PHP/8.x.x</code> header (when <code>expose_php=On</code>)
+      or sometimes inside the <code>Server</code> header. The scanner also looks for the <code>PHPSESSID</code>
+      cookie as a hint that PHP is present even when the version is hidden.</div>
+    </details>
+    <details>
+      <summary>What is PHP2Shell and am I affected?</summary>
+      <div class="a">PHP2Shell is the name given to two critical unauthenticated remote code execution flaws in PHP core
+      (<code>CVE-2026-109618</code>, an out-of-memory initialization bug, and <code>CVE-2026-109619</code>, a stale-request
+      use-after-free), both rated CVSS 9.2 and exploited in the wild since October 2026. Every PHP version below
+      8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 is affected — and end-of-life branches will not get a fix. If you run PHP,
+      assume you're affected until you've patched and restarted PHP-FPM or your web server.</div>
+    </details>
+    <details>
+      <summary>Why does it say "version not detected" for my site?</summary>
+      <div class="a">The most common reasons: the site sets <b>expose_php = Off</b> (recommended hardening),
+      a CDN or WAF like <b>Cloudflare, CloudFront, Akamai or Sucuri</b> sits in front and strips origin headers,
+      the web server removes <code>X-Powered-By</code> via config, or the site doesn't run PHP at all.
+      Not detected does not mean not vulnerable — check your hosting panel for the real version.</div>
+    </details>
+    <details>
+      <summary>Which PHP versions are safe to use right now?</summary>
+      <div class="a">PHP <b>8.4</b> and <b>8.5</b> are actively supported — but only at patch levels 8.4.27 / 8.5.12
+      or later (the PHP2Shell fixes). PHP 8.3 and 8.2 receive security fixes only (8.2 until Dec 31 2026,
+      8.3 until Dec 31 2027). PHP 8.1 and everything older is end of life and must be upgraded.</div>
+    </details>
+    <details>
+      <summary>Is hiding the PHP version enough to be secure?</summary>
+      <div class="a">No. Hiding the version (<code>expose_php=Off</code>) is good hygiene but it's security
+      through obscurity — attackers fingerprint PHP in other ways and exploit kits simply try the exploit anyway.
+      The only real protection is running a supported branch at its latest patch level.</div>
+    </details>
+    <details>
+      <summary>Will upgrading PHP break my WordPress, Laravel or OpenCart site?</summary>
+      <div class="a">It can, if themes, plugins or legacy code use removed features. The safe path: take a full
+      backup, test on a staging copy, update the CMS or framework and all extensions first, then switch the PHP
+      version. Most modern CMS releases already support PHP 8.3 and newer.</div>
+    </details>
+  </div>
+</section>
+
+<div class="cta">
+  <h2>Need help upgrading PHP or making your site compatible?</h2>
+  <p>If you want your PHP version upgraded — and your website made fully compatible with the latest PHP —
+     I can help. WordPress, Laravel, OpenCart, Magento, CodeIgniter, custom PHP: all CMS and frameworks covered —
+     on shared hosting, VPS, AWS, cPanel/WHM or Plesk — from compatibility audit to zero-downtime migration.</p>
+  <a class="btn" href="#" id="emailLink" rel="nofollow">Get in touch</a>
+  <p class="links">
+    <a href="https://kapoordeepanshu.github.io/" target="_blank" rel="noopener">Portfolio</a> ·
+    <a href="https://github.com/kapoordeepanshu" target="_blank" rel="noopener">GitHub</a>
+  </p>
+</div>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>PHP Version Scanner — open source, MIT licensed.</span>
+    <span>
+      Built by <a href="https://kapoordeepanshu.github.io/" target="_blank" rel="noopener">Deepanshu Kapoor</a> ·
+      <a href="https://github.com/kapoordeepanshu/php-version-scanner" target="_blank" rel="noopener">Source on GitHub</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+/* ---------- lifecycle data ---------- */
+const BRANCHES = {
+  "8.5": { released: "2025-11-20", activeUntil: "2027-12-31", eol: "2029-12-31", latest: "8.5.12" },
+  "8.4": { released: "2024-11-21", activeUntil: "2026-12-31", eol: "2028-12-31", latest: "8.4.27" },
+  "8.3": { released: "2023-11-23", activeUntil: "2025-12-31", eol: "2027-12-31", latest: "8.3.36" },
+  "8.2": { released: "2022-12-08", activeUntil: "2024-12-31", eol: "2026-12-31", latest: "8.2.35" },
+  "8.1": { released: "2021-11-25", activeUntil: "2023-11-25", eol: "2025-12-31", latest: "8.1.33" },
+  "8.0": { eol: "2023-11-26" }, "7.4": { eol: "2022-11-28" }, "7.3": { eol: "2021-12-06" },
+  "7.2": { eol: "2020-11-30" }, "7.1": { eol: "2019-12-01" }, "7.0": { eol: "2019-01-10" },
+  "5.6": { eol: "2018-12-31" }, "5.5": { eol: "2016-07-21" }, "5.4": { eol: "2015-09-03" },
+  "5.3": { eol: "2014-08-14" }, "5.2": { eol: "2011-01-06" }
+};
+const RECOMMENDED = ["8.5", "8.4"];
+
+/* ---------- known CVEs (2026) ---------- */
+const CVES = [
+  { id: "CVE-2026-109618", title: "PHP2Shell — unauthenticated RCE (request-data OOM flaw)", sev: "Critical 9.2", sevClass: "b-bad", critical: true,
+    desc: "If PHP runs out of memory while initializing request data, cleanup treats partially-initialized data as valid, enabling unauthenticated remote code execution. Exploited in the wild; emergency patches shipped Oct 21, 2026. mod_php setups are at greatest risk.",
+    fixed: { "8.2": "8.2.35", "8.3": "8.3.36", "8.4": "8.4.27", "8.5": "8.5.12" }, date: "Oct 2026" },
+  { id: "CVE-2026-109619", title: "PHP2Shell — unauthenticated RCE (stale-request use-after-free)", sev: "Critical 9.2", sevClass: "b-bad", critical: true,
+    desc: "PHP can access stale state left over from a previous request before initialization resets it, leading to use-after-free and remote code execution. Patch immediately and restart PHP-FPM or the web server so the new version loads.",
+    fixed: { "8.2": "8.2.35", "8.3": "8.3.36", "8.4": "8.4.27", "8.5": "8.5.12" }, date: "Oct 2026" },
+  { id: "CVE-2026-6722", title: "SOAP extension use-after-free", sev: "High", sevClass: "b-bad",
+    desc: "Memory corruption in the SOAP extension that can lead to remote code execution when parsing malicious SOAP responses.",
+    fixed: { "8.2": "8.2.31", "8.3": "8.3.31", "8.4": "8.4.21", "8.5": "8.5.6" }, date: "May 2026" },
+  { id: "CVE-2026-91768", title: "PHP-FPM FastCGI IPv6 ACL bypass", sev: "Medium 6.5", sevClass: "b-warn",
+    desc: "listen.allowed_clients compares only the first 12 bytes of IPv6 addresses, widening every ACL entry to a /96 prefix and letting unauthorized clients connect to FastCGI. Unix sockets are not affected.",
+    fixed: { "8.2": "8.2.34", "8.3": "8.3.35", "8.4": "8.4.26", "8.5": "8.5.11" }, date: "Sep 2026" },
+  { id: "CVE-2026-6735", title: "PHP-FPM status page XSS", sev: "Medium 5.4", sevClass: "b-warn",
+    desc: "Cross-site scripting via the PHP-FPM status endpoint allows injecting script into responses from the status page. Keep the status page off the public internet.",
+    fixed: { "8.2": "8.2.31", "8.3": "8.3.31", "8.4": "8.4.21", "8.5": "8.5.6" }, date: "May 2026" },
+  { id: "CVE-2026-7258", title: "ctype extension denial of service", sev: "Medium", sevClass: "b-warn",
+    desc: "Crafted input to ctype functions can trigger excessive resource use, causing a denial of service.",
+    fixed: { "8.2": "8.2.32", "8.3": "8.3.32", "8.4": "8.4.22", "8.5": "8.5.7" }, date: "2026" }
+];
+
+/* ---------- helpers ---------- */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const cmp = (a, b) => {
+  const pa = a.split(".").map(Number), pb = b.split(".").map(Number);
+  for (let i = 0; i < 3; i++) { const d = (pa[i] || 0) - (pb[i] || 0); if (d) return d; }
+  return 0;
+};
+const branchOf = v => v.split(".").slice(0, 2).join(".");
+const today = new Date();
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const M = () => (!reduceMotion && window.Motion) ? window.Motion : null;
+
+function branchStatus(branch) {
+  const b = BRANCHES[branch];
+  if (!b) return cmp(branch + ".0", "8.2.0") < 0 ? "eol" : "unknown";
+  if (b.eol && today > new Date(b.eol)) return "eol";
+  if (b.activeUntil && today > new Date(b.activeUntil)) return "security";
+  if (b.activeUntil) return "active";
+  return "eol";
+}
+
+function vulnsFor(version) {
+  const br = branchOf(version);
+  return CVES.filter(c => {
+    const fixedIn = c.fixed[br];
+    if (!fixedIn) return branchStatus(br) === "eol";
+    return cmp(version, fixedIn) < 0;
+  });
+}
+
+/* refresh latest patch versions from php.net via our API */
+fetch("/api/releases").then(r => r.json()).then(d => {
+  for (const [br, info] of Object.entries(d.branches || {})) {
+    if (BRANCHES[br] && info.latest && cmp(info.latest, BRANCHES[br].latest) > 0) BRANCHES[br].latest = info.latest;
+  }
+}).catch(() => {});
+
+/* ---------- scan ---------- */
+async function runScan() {
+  const btn = document.getElementById("scanBtn");
+  const box = document.getElementById("results");
+  const urls = [...new Set(
+    document.getElementById("urls").value.split(/[\n,\s]+/).map(u => u.trim()).filter(Boolean)
+  )].slice(0, 10);
+  if (!urls.length) { box.innerHTML = '<div class="card">Enter at least one URL to scan — for example <span style="font-family:var(--mono)">example.com</span>.</div>'; return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>&nbsp;Scanning';
+  box.innerHTML = "";
+  sweepScanline();
+
+  await Promise.all(urls.map(async u => {
+    const holder = document.createElement("div");
+    holder.className = "card";
+    holder.innerHTML = `<div class="top"><span class="url">${esc(u)}</span><span class="badge b-info"><span class="spin"></span>scanning</span></div>`;
+    box.appendChild(holder);
+    let html;
+    try {
+      const r = await fetch("/api/scan?url=" + encodeURIComponent(u));
+      html = renderResult(u, await r.json());
+    } catch {
+      html = renderResult(u, { unreachable: true, error: "Scan request failed. Check your connection and retry." });
+    }
+    const tpl = document.createElement("template");
+    tpl.innerHTML = html.trim();
+    const el = tpl.content.firstChild;
+    holder.replaceWith(el);
+    const m = M();
+    if (m) m.animate(el, { opacity: [0, 1], transform: ["translateY(10px)", "translateY(0)"] }, { duration: 0.35, easing: "ease-out" });
+  }));
+
+  btn.disabled = false;
+  btn.textContent = "Scan PHP version";
+}
+
+function sweepScanline() {
+  const m = M(), el = document.getElementById("scanline");
+  if (!m || !el) return;
+  m.animate(el, { opacity: [0, 1, 1, 0], top: ["0%", "100%"] }, { duration: 1.1, easing: "ease-in-out" });
+}
+
+function renderResult(u, d) {
+  if (d.error && !d.unreachable && !d.url) return card(u, badge("b-bad", "error"), `<p class="reasons" style="list-style:none">${esc(d.error)}</p>`);
+  if (d.unreachable) {
+    return card(u, badge("b-bad", "unreachable"),
+      `<ul class="reasons"><li>${esc(d.error)}</li><li>Check that the URL is public and spelled correctly, then scan again.</li></ul>`);
+  }
+  if (d.phpVersion) return renderDetected(u, d);
+  return renderNotDetected(u, d);
+}
+
+const badge = (cls, txt) => `<span class="badge ${cls}">${txt}</span>`;
+const card = (u, bdg, inner) =>
+  `<div class="card"><div class="top"><span class="url">${esc(u)}</span>${bdg}</div>${inner}</div>`;
+
+function renderDetected(u, d) {
+  const v = d.phpVersion;
+  const br = branchOf(v);
+  const status = branchStatus(br);
+  const info = BRANCHES[br] || {};
+  const latest = info.latest;
+  const patchOutdated = latest && v.split(".").length === 3 && cmp(v, latest) < 0;
+  const vendorBuild = latest && v.split(".").length === 3 && cmp(v, latest) > 0;
+  const vulns = vulnsFor(v.split(".").length === 3 ? v : v + ".0");
+  const recTarget = `PHP ${RECOMMENDED[0]} (latest: ${BRANCHES[RECOMMENDED[0]].latest})`;
+
+  let bdg, reco, recoCls;
+  if (status === "eol") {
+    bdg = badge("b-bad", "end of life");
+    recoCls = "r-bad";
+    reco = `<b>PHP ${esc(v)} is end of life${info.eol ? " (since " + info.eol + ")" : ""} — it receives no security fixes.</b><br>
+            Every vulnerability discovered since then, including the critical PHP2Shell RCE flaws, remains permanently
+            unpatched on this server. Upgrade urgently to <b>${recTarget}</b> or <b>PHP 8.4 (${BRANCHES["8.4"].latest})</b>.
+            ${vendorBuild ? `<br><br><b>Note:</b> ${esc(v)} is newer than the last official ${esc(br)} release (${latest}).
+            This is a <b>vendor backport build</b> — cPanel, Remi and Plesk rebuilt EOL branches with the PHP2Shell fix
+            under bumped version numbers. The emergency fix is likely included, but the branch is still end of life:
+            future vulnerabilities won't be patched, so the upgrade advice stands.` : ""}`;
+  } else if (status === "security") {
+    bdg = badge("b-warn", "security fixes only");
+    recoCls = "r-warn";
+    reco = `PHP ${esc(br)} gets security fixes only until <b>${info.eol}</b> — no bug fixes, and the clock is ticking.
+            ${patchOutdated ? `First, patch to <b>${latest}</b> — you're behind on security releases. Then plan` : "Plan"}
+            your move to <b>${recTarget}</b> before end of life.`;
+  } else {
+    if (patchOutdated) {
+      bdg = badge("b-warn", "outdated patch");
+      recoCls = "r-warn";
+      reco = `PHP ${esc(br)} is actively supported, but this server runs <b>${esc(v)}</b> while the latest is
+              <b>${latest}</b>. Update to the latest patch to close known CVEs${cmp(v, {"8.2":"8.2.35","8.3":"8.3.36","8.4":"8.4.27","8.5":"8.5.12"}[br] || "0.0.0") < 0 ? " — including the critical PHP2Shell RCE flaws" : ""}.`;
+    } else {
+      bdg = badge("b-ok", "secure and supported");
+      recoCls = "r-ok";
+      reco = `PHP ${esc(v)} is actively supported${info.activeUntil ? " until <b>" + info.activeUntil + "</b>" : ""} and up to date, with the PHP2Shell fixes included. Keep applying patch releases as they ship.`;
+    }
+  }
+
+  const vulnHtml = vulns.length ? `
+    <div class="cve-list">
+      <div style="font-weight:600;font-size:.85rem;margin-bottom:4px;color:var(--bad)">${vendorBuild ? `Potentially exposed to ${vulns.length} known ${vulns.length === 1 ? "vulnerability" : "vulnerabilities"} — vendor backports can't be verified from headers:` : `Exposed to ${vulns.length} known ${vulns.length === 1 ? "vulnerability" : "vulnerabilities"}:`}</div>
+      ${vulns.map(c => `<div class="cve-line"><span class="id">${c.id}</span><span class="badge ${c.sevClass}" style="font-size:.68rem;padding:2px 8px">${c.sev}</span><span>${esc(c.title)}${c.fixed[br] ? ` — fixed in ${c.fixed[br]}` : (vendorBuild ? " — no official fix for this branch; the vendor build may include a backport" : " — never fixed for this branch")}</span></div>`).join("")}
+    </div>` : "";
+
+  return card(u, bdg, `
+    <div class="ver-row">
+      <div class="stat"><div class="k">Detected version</div><div class="v big" style="color:${status === "eol" ? "var(--bad)" : status === "active" && !patchOutdated ? "var(--ok)" : "var(--warn)"}">PHP ${esc(v)}</div></div>
+      <div class="stat"><div class="k">Latest official ${esc(br)}.x</div><div class="v">${latest ? "PHP " + latest : "none — EOL"}${vendorBuild ? `<div style="font-size:.68rem;color:var(--dim);font-weight:400;margin-top:2px">${esc(v)} is a vendor build</div>` : ""}</div></div>
+      <div class="stat"><div class="k">Recommended</div><div class="v" style="color:var(--ok)">PHP ${BRANCHES[RECOMMENDED[0]].latest}</div></div>
+      <div class="stat"><div class="k">Server</div><div class="v" style="font-size:.85rem">${esc(d.headers?.server || "hidden")}</div></div>
+    </div>
+    <div class="reco ${recoCls}">${reco}</div>
+    ${vulnHtml}
+    ${upgradeGuide(status, br)}
+    ${secureGuide()}
+  `);
+}
+
+function renderNotDetected(u, d) {
+  const cdn = d.cdns && d.cdns.length ? d.cdns.join(", ") : null;
+  const reasons = [];
+  if (cdn) reasons.push(`<li><b>Behind ${esc(cdn)}</b> — the CDN or WAF terminates requests and strips or replaces the origin server's headers, hiding the PHP version from the outside.</li>`);
+  if (d.versionHidden) reasons.push(`<li><b>PHP is running but hides its version</b> ${d.phpSessionCookie ? "(a <code>PHPSESSID</code> cookie was set)" : ""} — the server likely has <code>expose_php = Off</code>, which is good hardening practice.</li>`);
+  else {
+    reasons.push(`<li><b>expose_php = Off</b> — most hardened servers disable the <code>X-Powered-By: PHP/x.y.z</code> header in <code>php.ini</code>.</li>`);
+    reasons.push(`<li><b>Headers stripped by the web server</b> — nginx (<code>fastcgi_hide_header</code>) or Apache (<code>Header unset X-Powered-By</code>) configs commonly remove version headers.</li>`);
+    reasons.push(`<li><b>The site may not run PHP at all</b> — it could be static, Node.js, Python, or another stack.</li>`);
+  }
+  reasons.push(`<li><b>Not detected does not mean not vulnerable.</b> Check the real version in your hosting panel (cPanel or Plesk) or run <code>php -v</code> on the server, then compare it against the timeline below — and make sure you're on a PHP2Shell-patched release.</li>`);
+
+  const bdg = d.versionHidden ? badge("b-info", "PHP detected — version hidden") : badge("b-info", "version not detected");
+  return card(u, bdg, `
+    <div class="ver-row">
+      <div class="stat"><div class="k">PHP version</div><div class="v">Not exposed</div></div>
+      <div class="stat"><div class="k">Server header</div><div class="v" style="font-size:.85rem">${esc(d.headers?.server || "hidden")}</div></div>
+      <div class="stat"><div class="k">CDN / WAF</div><div class="v" style="font-size:.85rem">${esc(cdn || "none detected")}</div></div>
+    </div>
+    <div class="reco r-info">The site responded (HTTP ${esc(d.httpStatus)}), but no PHP version is visible in its headers. Likely reasons:</div>
+    <ul class="reasons">${reasons.join("")}</ul>
+    ${upgradeGuide("unknown", null)}
+  `);
+}
+
+/* ---------- collapsible guides ---------- */
+function upgradeGuide(status, br) {
+  const urgency = status === "eol"
+    ? `<p style="color:var(--bad);font-weight:600">This branch is end of life — treat the upgrade as urgent.</p>` : "";
+  return `
+  <details class="fix">
+    <summary>How to upgrade PHP safely, step by step</summary>
+    <div class="body">
+      ${urgency}
+      <h4>1. Before you touch anything</h4>
+      <ul>
+        <li>Take a <b>full backup</b> — files and database.</li>
+        <li>Create a <b>staging copy</b> of the site and test there first, never in production.</li>
+        <li>Check compatibility: WordPress → Site Health and plugin pages; Laravel → <code>composer why-not php 8.4</code>; generic code → run <a href="https://github.com/PHPCompatibility/PHPCompatibility" target="_blank" rel="noopener">PHPCompatibility</a> via PHP_CodeSniffer.</li>
+        <li>Update your CMS, themes and plugins or extensions <b>before</b> switching PHP.</li>
+      </ul>
+      <h4>2. Switch the PHP version</h4>
+      <ul>
+        <li><b>cPanel:</b> MultiPHP Manager → select domain → choose PHP 8.4 or 8.5 → Apply.</li>
+        <li><b>WHM (server admin):</b> first install the new version under Software → EasyApache 4 (enable the PHP 8.4/8.5 packages and extensions you need), then assign it per account or server-wide in WHM → MultiPHP Manager.</li>
+        <li><b>Plesk:</b> Websites &amp; Domains → PHP Settings → pick the new version.</li>
+        <li><b>AWS:</b> EC2 (Amazon Linux 2023): <code>sudo dnf install php8.4 php8.4-{fpm,mysqlnd,mbstring,xml}</code> then restart php-fpm · Elastic Beanstalk: switch the environment to the newer PHP platform version · Lightsail/Bitnami stacks: launch a new instance with the updated stack and migrate — Bitnami images aren't upgraded in place.</li>
+        <li><b>Ubuntu or Debian VPS:</b>
+          <pre><code>sudo add-apt-repository ppa:ondrej/php
+sudo apt update && sudo apt install php8.4-fpm php8.4-mysql php8.4-mbstring php8.4-xml php8.4-curl
+# point your nginx/apache config at the new php8.4-fpm socket, then reload</code></pre></li>
+        <li><b>Docker:</b> bump the base image, for example <code>FROM php:8.4-fpm-alpine</code>, rebuild and redeploy.</li>
+        <li><b>Managed or shared hosting:</b> most hosts have a PHP version dropdown — or ask support when they are patching (important for PHP2Shell).</li>
+      </ul>
+      <h4>3. After switching</h4>
+      <ul>
+        <li><b>Restart PHP-FPM or the web server</b> so the new version actually loads — required for the PHP2Shell fix to take effect.</li>
+        <li>Watch the error log for deprecation warnings and fatals.</li>
+        <li>Test checkout, forms and login — the flows that make you money.</li>
+        <li>Keep auto-updating patch releases; only branch upgrades need this full process.</li>
+      </ul>
+    </div>
+  </details>`;
+}
+
+function secureGuide() {
+  return `
+  <details class="fix">
+    <summary>How to harden your PHP setup</summary>
+    <div class="body">
+      <ul>
+        <li><b>Patch PHP2Shell first:</b> be on at least <code>8.2.35 / 8.3.36 / 8.4.27 / 8.5.12</code> and restart every PHP worker. On shared hosting, ask your provider when they are patching.</li>
+        <li><b>Hide the version:</b> set <code>expose_php = Off</code> in php.ini — this scanner (and attackers) will no longer see it.</li>
+        <li><b>Strip headers at the web server:</b> nginx: <code>fastcgi_hide_header X-Powered-By;</code> · Apache: <code>Header unset X-Powered-By</code>.</li>
+        <li><b>Protect PHP-FPM:</b> restrict <code>listen.allowed_clients</code>, keep the status page off the public internet (CVE-2026-6735), and prefer Unix sockets over TCP — they are immune to the IPv6 ACL bypass (CVE-2026-91768).</li>
+        <li><b>Disable dangerous functions:</b> <code>disable_functions = exec,passthru,shell_exec,system</code> where your app allows it.</li>
+        <li><b>Turn off remote errors:</b> <code>display_errors = Off</code> in production; log instead.</li>
+        <li><b>Add a WAF or CDN</b> (Cloudflare has PHP2Shell rules enabled, including free plans) for an extra shield — but remember it hides problems from scanners, it doesn't patch them.</li>
+        <li><b>Most important:</b> stay on a supported branch at the latest patch. Everything above is defense in depth, not a substitute.</li>
+      </ul>
+    </div>
+  </details>`;
+}
+
+/* ---------- timeline render ---------- */
+(function renderTimeline() {
+  const startY = 2021, endY = 2030;
+  const span = Date.parse(`${endY}-01-01`) - Date.parse(`${startY}-01-01`);
+  const pct = d => Math.min(100, Math.max(0, (Date.parse(d) - Date.parse(`${startY}-01-01`)) / span * 100));
+  const rows = ["8.5", "8.4", "8.3", "8.2", "8.1"].map(br => {
+    const b = BRANCHES[br];
+    const r = pct(b.released), a = pct(b.activeUntil), e = pct(b.eol);
+    return `<div class="tl-row"><span class="name">${br}</span>
+      <div class="tl-track">
+        <div class="tl-seg seg-active" style="left:${r}%;width:${a - r}%">active</div>
+        <div class="tl-seg seg-sec" style="left:${a}%;width:${e - a}%">security</div>
+        <div class="tl-seg seg-eol" style="left:${e}%;width:${100 - e}%">EOL</div>
+        <div class="tl-now" style="left:${pct(new Date().toISOString())}%"></div>
+      </div></div>`;
+  }).join("");
+  document.getElementById("tlGrid").innerHTML = rows;
+  document.getElementById("tlScale").innerHTML =
+    Array.from({ length: endY - startY + 1 }, (_, i) => `<span>${startY + i}</span>`).join("");
+})();
+
+/* ---------- cve cards ---------- */
+document.getElementById("cveGrid").innerHTML = CVES.map(c => `
+  <div class="cve-card${c.critical ? " critical" : ""}">
+    <div><span class="id">${c.id}</span> <span class="badge ${c.sevClass}" style="font-size:.68rem;padding:3px 9px">${c.sev}</span></div>
+    <h3>${esc(c.title)}</h3>
+    <p>${esc(c.desc)}</p>
+    <div class="fixnote">fixed in ${Object.values(c.fixed).join(" / ")} · ${c.date}</div>
+  </div>`).join("");
+
+/* ---------- motion (Framer Motion vanilla build) ---------- */
+window.addEventListener("load", () => {
+  const m = M();
+  if (!m) return;
+  const { animate, inView, stagger } = m;
+  // one orchestrated hero sequence
+  animate("[data-motion=hero]",
+    { opacity: [0, 1], transform: ["translateY(14px)", "translateY(0)"] },
+    { duration: 0.5, delay: stagger(0.12), easing: "ease-out" });
+  setTimeout(sweepScanline, 500);
+  // timeline bars grow when scrolled into view
+  inView("#timeline", () => {
+    animate(".tl-seg", { transform: ["scaleX(0)", "scaleX(1)"] }, { duration: 0.6, delay: stagger(0.05), easing: "ease-out" });
+  }, { amount: 0.4 });
+  // cve cards rise in once
+  inView("#cves", () => {
+    animate(".cve-card", { opacity: [0, 1], transform: ["translateY(12px)", "translateY(0)"] }, { duration: 0.4, delay: stagger(0.06), easing: "ease-out" });
+  }, { amount: 0.25 });
+});
+
+/* assemble the contact email at runtime so scrapers can't harvest it from the source */
+(function () {
+  const el = document.getElementById("emailLink");
+  if (!el) return;
+  const user = ["deepanshu", "kapoor", "756"].join("");
+  const host = ["gmail", "com"].join(".");
+  el.addEventListener("click", e => { e.preventDefault(); location.href = "mailto:" + user + "@" + host; });
+})();
+
+/* ctrl+enter submits */
+document.getElementById("urls").addEventListener("keydown", e => {
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) runScan();
+});
+</script>
+</body>
+</html>

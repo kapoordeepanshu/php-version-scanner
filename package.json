@@ -1,0 +1,26 @@
+{
+  "name": "php-version-scanner",
+  "version": "1.0.0",
+  "description": "Free online scanner that detects a website's PHP version, checks end-of-life status and known CVEs (including PHP2Shell), and recommends the secure version to upgrade to.",
+  "type": "module",
+  "homepage": "https://php-version-scanner.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kapoordeepanshu/php-version-scanner.git"
+  },
+  "keywords": [
+    "php",
+    "php-version-checker",
+    "php-eol",
+    "security-scanner",
+    "vulnerability-scanner",
+    "php2shell",
+    "vercel",
+    "serverless"
+  ],
+  "author": "Deepanshu Kapoor (https://kapoordeepanshu.github.io/)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
